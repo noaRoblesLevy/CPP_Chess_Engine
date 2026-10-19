@@ -355,6 +355,81 @@ void findMoves(char board[8][8], int row, int col){
     }
 }
 
+bool lookForCheck(char board[8][8], int row, int col, bool byWhite){
+    //king
+    char enemyKing = (byWhite)? 'K' : 'k';
+    for (int d = 0; d < 8; d++){
+        int r = row + king[d][0];   
+        int c = col + king[d][1];   
+
+        if (onBoard(r, c) && board[r][c] == enemyKing)
+        {
+            return true;
+        }
+    }
+    //knight
+    char enemyKnight = (byWhite)? 'N' : 'n';
+    for (int d = 0; d < 8; d++){
+        int r = row + knight[d][0];   
+        int c = col + knight[d][1];   
+
+        if (onBoard(r, c) && board[r][c] == enemyKnight)
+        {
+            return true;
+        }
+    }
+    //rook + queen
+    char enemyRook = (byWhite)? 'R' : 'r';
+    char enemyQueen = (byWhite)? 'Q' : 'q';
+    for (int d = 0; d < 4; d++){
+        int r = row + rook[d][0];
+        int c = col + rook[d][1];
+
+        while (onBoard(r, c))
+        {
+            if ((board[r][c] == enemyRook || board[r][c] == enemyQueen))
+            {
+                return true;
+            }else if (board[r][c] != '.')
+            {
+                break;
+            }
+            r += rook[d][0];             
+            c += rook[d][1];  
+        }
+    }
+    //bishop + queen
+    char enemyBishop = (byWhite)? 'B' : 'b';
+    for (int d = 0; d < 4; d++){
+        int r = row + bishop[d][0];
+        int c = col + bishop[d][1];
+
+        while (onBoard(r, c))
+        {
+            if ((board[r][c] == enemyBishop || board[r][c] == enemyQueen))
+            {
+                return true;
+            }else if (board[r][c] != '.')
+            {
+                break;
+            }
+            r += bishop[d][0];             
+            c += bishop[d][1];  
+        }
+    }
+    //pawn
+    int enemyPawnDir = (byWhite)? 1 : -1;
+    char enemyPawn = (byWhite)? 'P' : 'p';
+    int r = row + enemyPawnDir;
+    if (onBoard(r, col - 1) && board[r][col-1] == enemyPawn){
+        return true;
+    }else if(onBoard(r, col + 1) && board[r][col + 1] == enemyPawn){
+        return true;
+    }
+    
+    return false;
+}
+
 void makeMove(char board[8][8], Move m){
     char p = board[m.fromRow][m.fromCol];
     if(isEnemy(p, board[m.toRow][m.toCol])){
