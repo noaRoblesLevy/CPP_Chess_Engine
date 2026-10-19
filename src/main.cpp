@@ -426,7 +426,6 @@ bool lookForCheck(char board[8][8], int row, int col, bool byWhite){
     }else if(onBoard(r, col + 1) && board[r][col + 1] == enemyPawn){
         return true;
     }
-    
     return false;
 }
 
@@ -524,6 +523,36 @@ void unmakeMove(char board[8][8]){
     
 
     madeMoves.pop_back();
+}
+
+int findKing(char board[8][8], bool White){
+    char t = (White)? 'K' : 'k';
+    for(int i = 0; i<8; i++){
+        for (int j = 0; j < 8; j++){
+            if(board[i][j] == t){
+                return i  * 8 + j;
+            }
+        }
+    }
+    return -1;
+}
+
+void filterLegalMoves(char board[8][8]){
+    std::vector<Move> legalMoves;
+    for(Move m : possibleMoves){
+        bool White = (std::isupper(board[m.fromRow][m.fromCol]));
+        makeMove(board, m);
+        int coord = findKing(board, White);
+        int row = coord / 8;
+        int col = coord % 8;
+        
+        if(!lookForCheck(board, row, col, !White)){
+            legalMoves.push_back(m);
+        }
+        unmakeMove(board);
+        
+    }
+    possibleMoves = legalMoves;
 }
 
 int main() {
