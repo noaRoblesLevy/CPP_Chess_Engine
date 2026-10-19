@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug engine",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/engine-debug.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+            "environment": [
+                { "name": "PATH", "value": "C:/msys64/mingw64/bin;${env:PATH}" }
+            ],
+            "setupCommands": [
+                { "description": "Mooie weergave van vectors en strings", "text": "-enable-pretty-printing", "ignoreFailures": true }
+            ],
+            "preLaunchTask": "build-debug"
+        }
+    ]
+}
