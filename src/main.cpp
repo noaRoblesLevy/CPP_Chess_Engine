@@ -182,14 +182,90 @@ bool isEnemy(char a, char b){
     return std::isupper(a) != std::isupper(b);
 }
 
+bool lookForCheck(char board[8][8], int row, int col, bool byWhite){
+    //king
+    char enemyKing = (byWhite)? 'K' : 'k';
+    for (int d = 0; d < 8; d++){
+        int r = row + king[d][0];   
+        int c = col + king[d][1];   
+
+        if (onBoard(r, c) && board[r][c] == enemyKing)
+        {
+            return true;
+        }
+    }
+    //knight
+    char enemyKnight = (byWhite)? 'N' : 'n';
+    for (int d = 0; d < 8; d++){
+        int r = row + knight[d][0];   
+        int c = col + knight[d][1];   
+
+        if (onBoard(r, c) && board[r][c] == enemyKnight)
+        {
+            return true;
+        }
+    }
+    //rook + queen
+    char enemyRook = (byWhite)? 'R' : 'r';
+    char enemyQueen = (byWhite)? 'Q' : 'q';
+    for (int d = 0; d < 4; d++){
+        int r = row + rook[d][0];
+        int c = col + rook[d][1];
+
+        while (onBoard(r, c))
+        {
+            if ((board[r][c] == enemyRook || board[r][c] == enemyQueen))
+            {
+                return true;
+            }else if (board[r][c] != '.')
+            {
+                break;
+            }
+            r += rook[d][0];             
+            c += rook[d][1];  
+        }
+    }
+    //bishop + queen
+    char enemyBishop = (byWhite)? 'B' : 'b';
+    for (int d = 0; d < 4; d++){
+        int r = row + bishop[d][0];
+        int c = col + bishop[d][1];
+
+        while (onBoard(r, c))
+        {
+            if ((board[r][c] == enemyBishop || board[r][c] == enemyQueen))
+            {
+                return true;
+            }else if (board[r][c] != '.')
+            {
+                break;
+            }
+            r += bishop[d][0];             
+            c += bishop[d][1];  
+        }
+    }
+    //pawn
+    int enemyPawnDir = (byWhite)? 1 : -1;
+    char enemyPawn = (byWhite)? 'P' : 'p';
+    int r = row + enemyPawnDir;
+    if (onBoard(r, col - 1) && board[r][col-1] == enemyPawn){
+        return true;
+    }else if(onBoard(r, col + 1) && board[r][col + 1] == enemyPawn){
+        return true;
+    }
+    return false;
+}
+
 void castleCheck(char board[8][8], int row, int col){
     char p = board[row][col];
     if(std::isupper(p) && p == board[7][4]){
         if(castleWShort){
             if (board[row][col+1] == '.' && board[row][col+2] == '.' && board[row][7] == 'R')
             {
-                fillMove(row, col, row, col+2);
-                possibleMoves.back().isCastle = true;
+                if(!lookForCheck(board, row, col, false) && !lookForCheck(board, row, col+1, false)){
+                    fillMove(row, col, row, col+2);
+                    possibleMoves.back().isCastle = true;
+                }
             }   
         }
     }
@@ -197,8 +273,10 @@ void castleCheck(char board[8][8], int row, int col){
         if(castleWLong){
             if (board[row][col-1] == '.' && board[row][col-2] == '.' && board[row][col-3] == '.' && board[row][0] == 'R')
             {
-                fillMove(row, col, row, col-2);
-                possibleMoves.back().isCastle = true;
+                if(!lookForCheck(board, row, col, false) && !lookForCheck(board, row, col-1, false)){
+                    fillMove(row, col, row, col-2);
+                    possibleMoves.back().isCastle = true;
+                }
             }   
         }
     }
@@ -207,8 +285,10 @@ void castleCheck(char board[8][8], int row, int col){
         if(castleBShort){
             if (board[row][col+1] == '.' && board[row][col+2] == '.' && board[row][7] == 'r')
             {
-                fillMove(row, col, row, col+2);
-                possibleMoves.back().isCastle = true;
+                if(!lookForCheck(board, row, col, true) && !lookForCheck(board, row, col+1, true)){
+                    fillMove(row, col, row, col+2);
+                    possibleMoves.back().isCastle = true;
+                }
             }   
         }
     }
@@ -216,8 +296,10 @@ void castleCheck(char board[8][8], int row, int col){
         if(castleBLong){
             if (board[row][col-1] == '.' && board[row][col-2] == '.' && board[row][col-3] == '.' && board[row][0] == 'r')
             {
-                fillMove(row, col, row, col-2);
-                possibleMoves.back().isCastle = true;
+                if(!lookForCheck(board, row, col, true) && !lookForCheck(board, row, col-1, true)){
+                    fillMove(row, col, row, col-2);
+                    possibleMoves.back().isCastle = true;
+                }
             }   
         }
     }
@@ -355,80 +437,6 @@ void findMoves(char board[8][8], int row, int col){
     }
 }
 
-bool lookForCheck(char board[8][8], int row, int col, bool byWhite){
-    //king
-    char enemyKing = (byWhite)? 'K' : 'k';
-    for (int d = 0; d < 8; d++){
-        int r = row + king[d][0];   
-        int c = col + king[d][1];   
-
-        if (onBoard(r, c) && board[r][c] == enemyKing)
-        {
-            return true;
-        }
-    }
-    //knight
-    char enemyKnight = (byWhite)? 'N' : 'n';
-    for (int d = 0; d < 8; d++){
-        int r = row + knight[d][0];   
-        int c = col + knight[d][1];   
-
-        if (onBoard(r, c) && board[r][c] == enemyKnight)
-        {
-            return true;
-        }
-    }
-    //rook + queen
-    char enemyRook = (byWhite)? 'R' : 'r';
-    char enemyQueen = (byWhite)? 'Q' : 'q';
-    for (int d = 0; d < 4; d++){
-        int r = row + rook[d][0];
-        int c = col + rook[d][1];
-
-        while (onBoard(r, c))
-        {
-            if ((board[r][c] == enemyRook || board[r][c] == enemyQueen))
-            {
-                return true;
-            }else if (board[r][c] != '.')
-            {
-                break;
-            }
-            r += rook[d][0];             
-            c += rook[d][1];  
-        }
-    }
-    //bishop + queen
-    char enemyBishop = (byWhite)? 'B' : 'b';
-    for (int d = 0; d < 4; d++){
-        int r = row + bishop[d][0];
-        int c = col + bishop[d][1];
-
-        while (onBoard(r, c))
-        {
-            if ((board[r][c] == enemyBishop || board[r][c] == enemyQueen))
-            {
-                return true;
-            }else if (board[r][c] != '.')
-            {
-                break;
-            }
-            r += bishop[d][0];             
-            c += bishop[d][1];  
-        }
-    }
-    //pawn
-    int enemyPawnDir = (byWhite)? 1 : -1;
-    char enemyPawn = (byWhite)? 'P' : 'p';
-    int r = row + enemyPawnDir;
-    if (onBoard(r, col - 1) && board[r][col-1] == enemyPawn){
-        return true;
-    }else if(onBoard(r, col + 1) && board[r][col + 1] == enemyPawn){
-        return true;
-    }
-    return false;
-}
-
 void makeMove(char board[8][8], Move m){
     char p = board[m.fromRow][m.fromCol];
     if(isEnemy(p, board[m.toRow][m.toCol])){
@@ -555,25 +563,47 @@ void filterLegalMoves(char board[8][8]){
     possibleMoves = legalMoves;
 }
 
-int main() {
-    std::cout << "Chess engine v0.1\n";
-    loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPP1PPP/RNBQKBNR");
-    showBoard(new_board);
-    
-    for (int i = 0; i < 8; i++)
-    {
+void moveListPerColor(char board[8][8], bool white){
+    possibleMoves.clear();
+    for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++)
         {
-            if (std::isupper(new_board[i][j]))
+            if(white)
             {
-                findMoves(new_board, i, j);
+                if (std::isupper(board[i][j])){
+                    findMoves(board, i, j);
+                }
+            }else{
+                if (std::islower(board[i][j])){
+                    findMoves(board, i, j);
+                }
             }
+            
         }       
     }
-    showMoveList();
-    std::cout << possibleMoves.size();
+    filterLegalMoves(board);
+}
 
-    makeMove(new_board, possibleMoves[20]);
-    unmakeMove(new_board);
+long perft(char board[8][8], int depth, bool white){
+    if(depth == 0){return 1;}
+    long count = 0;
+    moveListPerColor(board, white);
+    std::vector<Move> initMoves = possibleMoves;
+    for(Move m : initMoves){
+        makeMove(board, m);
+        count += perft(board, depth -1, !white);
+        unmakeMove(board);
+    }
+
+    return count;
+}
+
+int main() {
+    std::cout << "Chess engine v0.1\n";
+    loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+    showBoard(new_board);
+    
+    long count = perft(new_board, 4, true);
+    std::cout << count;
     return 0;
 }

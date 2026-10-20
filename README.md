@@ -4,16 +4,16 @@ A chess engine written from scratch in C++, as a personal project to really unde
 
 ## Current status
 
-Milestone 5 of 10 is done. The engine can:
+Milestone 6 of 10 is done. The engine can:
 
 - load a position from the board part of a [FEN](https://www.chessprogramming.org/Forsyth-Edwards_Notation) string and print the board
 - generate all pseudo-legal moves for every piece (sliding pieces, knights, king, pawns)
 - handle the special moves: promotion (to queen, rook, bishop or knight), en passant and castling, including castling rights
 - make and unmake any move exactly, also several moves deep, so the board and the castling rights are restored
+- detect attacked squares and check, and keep only legal moves (no castling out of, through or into check)
+- count move trees with perft
 
-Checked with move counts on known positions, for example 20 moves from the start position and 48 for white in the [Kiwipete](https://www.chessprogramming.org/Perft_Results) test position.
-
-Moves are still **pseudo-legal**: the engine does not yet check whether a move leaves its own king in check. That is the next milestone.
+Verified with [perft](https://www.chessprogramming.org/Perft_Results): the engine matches the official node counts, for example 4 865 609 at depth 5 from the start position and 4 085 603 at depth 4 in the Kiwipete test position.
 
 ## Roadmap
 
@@ -24,8 +24,8 @@ Moves are still **pseudo-legal**: the engine does not yet check whether a move l
 | 3 | Moves of a single piece (knight, king) | done |
 | 4 | All pseudo-legal moves (sliding pieces, pawns) | done |
 | 5 | Make and unmake moves, promotion, en passant, castling | done |
-| 6 | Legal moves (check detection) and perft testing | next |
-| 7 | UCI protocol, to play against it in a chess GUI | |
+| 6 | Legal moves (check detection) and perft testing | done |
+| 7 | UCI protocol, to play against it in a chess GUI | next |
 | 8 | Evaluation (material, piece-square tables) | |
 | 9 | Search (minimax, alpha-beta) | |
 | 10 | Speed and strength (move ordering, quiescence search, transposition table, bitboards) | |
