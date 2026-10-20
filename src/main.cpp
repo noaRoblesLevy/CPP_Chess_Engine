@@ -3,6 +3,7 @@
 #include <stack>
 #include <cctype>
 #include <vector>
+#include <chrono>
 
 char start_board[8][8] = {
         {'r','n','b','q','k','b','n','r'},  // rij 8: zwarte stukken
@@ -603,7 +604,11 @@ int main() {
     loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     showBoard(new_board);
     
-    long count = perft(new_board, 4, true);
-    std::cout << count;
+    auto start = std::chrono::steady_clock::now();
+    long long count = perft(new_board, 5, true);
+    auto end = std::chrono::steady_clock::now();
+
+    double seconds = std::chrono::duration<double>(end - start).count();
+    std::cout << count << " in " << seconds << " s, " << count / seconds << " nps\n";
     return 0;
 }
