@@ -4,7 +4,7 @@ A chess engine written from scratch in C++, as a personal project to really unde
 
 ## Current status
 
-Milestone 6 of 10 is done. The engine can:
+Milestone 7 of 10 is done. The engine can:
 
 - load a position from the board part of a [FEN](https://www.chessprogramming.org/Forsyth-Edwards_Notation) string and print the board
 - generate all pseudo-legal moves for every piece (sliding pieces, knights, king, pawns)
@@ -12,6 +12,7 @@ Milestone 6 of 10 is done. The engine can:
 - make and unmake any move exactly, also several moves deep, so the board and the castling rights are restored
 - detect attacked squares and check, and keep only legal moves (no castling out of, through or into check)
 - count move trees with perft
+- speak the [UCI](https://www.chessprogramming.org/UCI) protocol, so it can be loaded in a chess GUI such as Cute Chess (for now it plays the first legal move it finds)
 
 Verified with [perft](https://www.chessprogramming.org/Perft_Results): the engine matches the official node counts, for example 4 865 609 at depth 5 from the start position and 4 085 603 at depth 4 in the Kiwipete test position.
 
@@ -25,8 +26,8 @@ Verified with [perft](https://www.chessprogramming.org/Perft_Results): the engin
 | 4 | All pseudo-legal moves (sliding pieces, pawns) | done |
 | 5 | Make and unmake moves, promotion, en passant, castling | done |
 | 6 | Legal moves (check detection) and perft testing | done |
-| 7 | UCI protocol, to play against it in a chess GUI | next |
-| 8 | Evaluation (material, piece-square tables) | |
+| 7 | UCI protocol, to play against it in a chess GUI | done |
+| 8 | Evaluation (material, piece-square tables) | next |
 | 9 | Search (minimax, alpha-beta) | |
 | 10 | Speed and strength (move ordering, quiescence search, transposition table, bitboards) | |
 
@@ -35,6 +36,10 @@ Verified with [perft](https://www.chessprogramming.org/Perft_Results): the engin
 - **Board**: `char board[8][8]`, uppercase letters for white, lowercase for black, `.` for an empty square. Index `[0]` is rank 8.
 - **Moves**: a `struct Move` with the from and to squares, plus what is needed to undo it: the captured piece, the promotion piece, flags for en passant and castling, and the castling rights from before the move.
 - **Make / unmake**: played moves are kept on a stack (`std::vector<Move>`), so the last move can always be undone.
+
+## Playing against it
+
+Build `engine.exe`, then add it as a UCI engine in a GUI like [Cute Chess](https://github.com/cutechess/cutechess). Supported commands: `uci`, `isready`, `position startpos|fen ... moves ...`, `go`, `quit`, plus `d` to print the board.
 
 ## Building
 
