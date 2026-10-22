@@ -4,6 +4,7 @@
 #include <cctype>
 #include <vector>
 #include <chrono>
+#include <sstream>
 
 char start_board[8][8] = {
         {'r','n','b','q','k','b','n','r'},  // rij 8: zwarte stukken
@@ -57,6 +58,7 @@ bool castleBLong= true;
 bool castleBShort= true;
 bool castleWLong= true;
 bool castleWShort= true;
+bool whiteTurn = true;
 
 void showBoard(char board[8][8]){
     for (int i = 0; i < 8; i++)
@@ -112,10 +114,15 @@ void showFEN(char board[8][8]){
 }
 
 void loadFEN(std::string input_fen){
+    std::istringstream ss(input_fen);
+    std::string boardPart;
+    std::string side;
+    std::string castling;
+    ss >> boardPart >> side >> castling;
     for (int i = 0; i < 8; i++)
     {
         int j = 0;
-        for(char c : input_fen){
+        for(char c : boardPart){
             if(c != '/'){
                 if (c >= '1' && c <= '8')
                 {
@@ -139,7 +146,37 @@ void loadFEN(std::string input_fen){
             
         }
     }
-
+    whiteTurn = (side == "b")?false:true;
+    if(castling != ""){
+        castleBLong = false;
+        castleBShort = false;
+        castleWLong = false;
+        castleWShort = false;
+        for(char c : castling){
+            switch (c)
+            {
+            case 'K':
+                castleWShort = true;
+                break;
+            case 'k':
+                castleBShort = true;
+                break;
+            case 'Q':
+                castleWLong = true;
+                break;
+            case 'q':
+                castleBLong = true;
+                break;
+            default:
+                break;
+            }
+        }
+    }else{
+        castleBLong = true;
+        castleBShort = true;
+        castleWLong = true;
+        castleWShort = true;
+    }
 }
 
 void fillMove(int fromRow, int fromCol, int toRow, int toCol){
@@ -595,7 +632,6 @@ long perft(char board[8][8], int depth, bool white){
         count += perft(board, depth -1, !white);
         unmakeMove(board);
     }
-
     return count;
 }
 
@@ -618,16 +654,83 @@ bool parseMove(char board[8][8], std::string text, bool white, Move& result){
     return false;
 }
 
-int main() {
-    std::cout << "Chess engine v0.1\n";
-    loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-    showBoard(new_board);
+std::string moveToString(Move m){
+    char fromRow = '0' +  (8 - m.fromRow);
+    char fromCol = 'a' + m.fromCol;
+    char toRow = '0' +  (8 - m.toRow);
+    char toCol = 'a' + m.toCol;
+    std::string move;
+    move += fromCol;
+    move += fromRow;
+    move += toCol;
+    move += toRow;
+    if(m.promotionPiece != '.'){
+        move += m.promotionPiece;
+    }
+    return move;
+}
 
+void bench(char board[8][8]){
     auto start = std::chrono::steady_clock::now();
-    long long count = perft(new_board, 2, true);
+    long long count = perft(board, 5, true);
     auto end = std::chrono::steady_clock::now();
-
     double seconds = std::chrono::duration<double>(end - start).count();
     std::cout << count << " in " << seconds << " s, " << count / seconds << " nps\n";
+
+}
+void uci(){
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        std::istringstream ss(line);
+        std::string command;
+        ss >> command;
+
+        if(command == "uci"){
+            std::cout << "id name NoaChessEngine" << '\n';
+            std::cout << "id author Noa" << '\n';
+            std::cout << "uciok" << std::endl;
+        }else if(command == "isready"){
+            std::cout << "readyok" << std::endl;
+        }else if(command == "position"){
+            std::string pos;
+            ss >> pos;
+            if(pos == "startpos"){
+                loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+                madeMoves.clear();
+            }
+            std::string moves;
+            ss >> moves;
+            while(ss >> moves){
+                Move m;
+                if(parseMove(new_board, moves, whiteTurn, m)){
+                    makeMove(new_board, m);
+                    whiteTurn = !whiteTurn;
+                }
+            }
+        }else if(command == "go"){
+            Move m;
+            moveListPerColor(new_board, whiteTurn);
+            if(possibleMoves.empty()){
+                std::cout << "bestmove 0000" << std::endl;
+            }else{
+                m = possibleMoves[0];
+                std::string move = moveToString(m);
+                std::cout << "bestmove " << move << std::endl;
+            }
+
+        }else if(command == "d"){
+            showBoard(new_board);
+        }else if(command == "quit"){
+            return;
+        }
+    }
+}
+
+int main() {
+    std::cout << "Chess engine v0.1\n";
+    // loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+    // bench(new_board);
+
+    uci();
     return 0;
 }
