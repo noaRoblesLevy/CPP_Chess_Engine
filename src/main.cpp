@@ -599,13 +599,32 @@ long perft(char board[8][8], int depth, bool white){
     return count;
 }
 
+bool parseMove(char board[8][8], std::string text, bool white, Move& result){
+    
+    int fromCol = text[0] - 'a';
+    int fromRow = 8 - (text[1] - '0');
+    int toCol = text[2] - 'a';
+    int toRow = 8 - (text[3] - '0');
+    char promPiece = (text.size()==5)?text[4]:'.';
+
+    moveListPerColor(board, white);
+    for(Move m : possibleMoves){
+        if(m.fromCol == fromCol && m.fromRow == fromRow && m.toCol == toCol && m.toRow == toRow && (std::tolower(m.promotionPiece) == promPiece)){
+            result = m;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int main() {
     std::cout << "Chess engine v0.1\n";
     loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     showBoard(new_board);
-    
+
     auto start = std::chrono::steady_clock::now();
-    long long count = perft(new_board, 5, true);
+    long long count = perft(new_board, 2, true);
     auto end = std::chrono::steady_clock::now();
 
     double seconds = std::chrono::duration<double>(end - start).count();
