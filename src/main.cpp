@@ -118,7 +118,9 @@ void loadFEN(std::string input_fen){
     std::string boardPart;
     std::string side;
     std::string castling;
-    ss >> boardPart >> side >> castling;
+    std::string ep;
+    madeMoves.clear();
+    ss >> boardPart >> side >> castling >> ep;
     for (int i = 0; i < 8; i++)
     {
         int j = 0;
@@ -176,6 +178,20 @@ void loadFEN(std::string input_fen){
         castleBShort = true;
         castleWLong = true;
         castleWShort = true;
+    }
+    if(!ep.empty() && ep !="-"){
+        Move m;
+        int col = ep[0] - 'a';
+        m.fromCol = col;
+        m.toCol = col;
+        if(ep[1] == '3'){
+            m.fromRow = 6;
+            m.toRow = 4;
+        }else{
+            m.fromRow = 1;
+            m.toRow = 3;
+        }
+        madeMoves.push_back(m);
     }
 }
 
@@ -665,7 +681,7 @@ std::string moveToString(Move m){
     move += toCol;
     move += toRow;
     if(m.promotionPiece != '.'){
-        move += m.promotionPiece;
+        move += std::tolower(m.promotionPiece);
     }
     return move;
 }
@@ -696,7 +712,15 @@ void uci(){
             ss >> pos;
             if(pos == "startpos"){
                 loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-                madeMoves.clear();
+            }else if(pos == "fen"){
+                std::string fen;
+                std::string temp;
+                for(int i = 0; i < 6; i++){
+                    ss >> temp;
+                    fen+=temp; 
+                    fen+=" ";
+                }
+                loadFEN(fen);
             }
             std::string moves;
             ss >> moves;
