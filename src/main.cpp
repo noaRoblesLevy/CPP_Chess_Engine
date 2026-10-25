@@ -59,6 +59,67 @@ bool castleBShort= true;
 bool castleWLong= true;
 bool castleWShort= true;
 bool whiteTurn = true;
+int pstPawn[8][8] = {
+    {  0,  0,  0,  0,  0,  0,  0,  0},
+    { 50, 50, 50, 50, 50, 50, 50, 50},
+    { 10, 10, 20, 30, 30, 20, 10, 10},
+    {  5,  5, 10, 25, 25, 10,  5,  5},
+    {  0,  0,  0, 20, 20,  0,  0,  0},
+    {  5, -5,-10,  0,  0,-10, -5,  5},
+    {  5, 10, 10,-20,-20, 10, 10,  5},
+    {  0,  0,  0,  0,  0,  0,  0,  0}
+};
+int pstKnight[8][8] = {
+    {-50,-40,-30,-30,-30,-30,-40,-50},
+    {-40,-20,  0,  0,  0,  0,-20,-40},
+    {-30,  0, 10, 15, 15, 10,  0,-30},
+    {-30,  5, 15, 20, 20, 15,  5,-30},
+    {-30,  0, 15, 20, 20, 15,  0,-30},
+    {-30,  5, 10, 15, 15, 10,  5,-30},
+    {-40,-20,  0,  5,  5,  0,-20,-40},
+    {-50,-40,-30,-30,-30,-30,-40,-50}
+};
+int pstBishop[8][8] = {
+    {-20,-10,-10,-10,-10,-10,-10,-20},
+    {-10,  0,  0,  0,  0,  0,  0,-10},
+    {-10,  0,  5, 10, 10,  5,  0,-10},
+    {-10,  5,  5, 10, 10,  5,  5,-10},
+    {-10,  0, 10, 10, 10, 10,  0,-10},
+    {-10, 10, 10, 10, 10, 10, 10,-10},
+    {-10,  5,  0,  0,  0,  0,  5,-10},
+    {-20,-10,-10,-10,-10,-10,-10,-20}
+};
+int pstRook[8][8] = {
+    {  0,  0,  0,  0,  0,  0,  0,  0},
+    {  5, 10, 10, 10, 10, 10, 10,  5},
+    { -5,  0,  0,  0,  0,  0,  0, -5},
+    { -5,  0,  0,  0,  0,  0,  0, -5},
+    { -5,  0,  0,  0,  0,  0,  0, -5},
+    { -5,  0,  0,  0,  0,  0,  0, -5},
+    { -5,  0,  0,  0,  0,  0,  0, -5},
+    {  0,  0,  0,  5,  5,  0,  0,  0}
+};
+int pstQueen[8][8] = {
+    {-20,-10,-10, -5, -5,-10,-10,-20},
+    {-10,  0,  0,  0,  0,  0,  0,-10},
+    {-10,  0,  5,  5,  5,  5,  0,-10},
+    { -5,  0,  5,  5,  5,  5,  0, -5},
+    {  0,  0,  5,  5,  5,  5,  0, -5},
+    {-10,  5,  5,  5,  5,  5,  0,-10},
+    {-10,  0,  5,  0,  0,  0,  0,-10},
+    {-20,-10,-10, -5, -5,-10,-10,-20}
+};
+int pstKing[8][8] = {
+    {-30,-40,-40,-50,-50,-40,-40,-30},
+    {-30,-40,-40,-50,-50,-40,-40,-30},
+    {-30,-40,-40,-50,-50,-40,-40,-30},
+    {-30,-40,-40,-50,-50,-40,-40,-30},
+    {-20,-30,-30,-40,-40,-30,-30,-20},
+    {-10,-20,-20,-20,-20,-20,-20,-10},
+    { 20, 20,  0,  0,  0,  0, 20, 20},
+    { 20, 30, 10,  0,  0, 10, 30, 20}
+};
+
 
 void showBoard(char board[8][8]){
     for (int i = 0; i < 8; i++)
@@ -651,6 +712,55 @@ long perft(char board[8][8], int depth, bool white){
     return count;
 }
 
+int assignPoints(char piece, bool isWhite, int i, int j){
+    int sign = (isWhite)? 1 : -1;
+    int value = 0;
+    switch (std::toupper(piece))
+    {
+    case 'K':
+        value = 0;
+        value += (isWhite) ? pstKing[i][j] : pstKing[7 - i][j];
+        break;
+    case 'Q':
+        value = 900;
+        value += (isWhite) ? pstQueen[i][j] : pstQueen[7 - i][j];
+        break;
+    case 'R':
+        value = 500;
+        value += (isWhite) ? pstRook[i][j] : pstRook[7 - i][j];
+        break;
+    case 'B':
+        value = 330;
+        value += (isWhite) ? pstBishop[i][j] : pstBishop[7 - i][j];
+        break;
+    case 'N':
+        value = 320;
+        value += (isWhite) ? pstKnight[i][j] : pstKnight[7 - i][j];
+        break;
+    case 'P':
+        value = 100;
+        value += (isWhite) ? pstPawn[i][j] : pstPawn[7 - i][j];
+        break;
+    default:
+        break;
+    }
+    value *= sign;
+    return value;
+}
+
+int evaluate(char board[8][8]){
+    int count = 0;
+    for(int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++)
+        {
+            char piece = board[i][j];
+            count += assignPoints(piece, std::isupper(piece), i, j);
+        }
+        
+    }
+    return count;
+}
+
 bool parseMove(char board[8][8], std::string text, bool white, Move& result){
     
     int fromCol = text[0] - 'a';
@@ -694,6 +804,7 @@ void bench(char board[8][8]){
     std::cout << count << " in " << seconds << " s, " << count / seconds << " nps\n";
 
 }
+
 void uci(){
     std::string line;
     while (std::getline(std::cin, line)) {
@@ -746,9 +857,13 @@ void uci(){
             showBoard(new_board);
         }else if(command == "quit"){
             return;
+        }else if(command == "eval"){
+            int eval = evaluate(new_board);
+            std::cout << eval << std::endl;
         }
     }
 }
+
 
 int main() {
     std::cout << "Chess engine v0.1\n";
