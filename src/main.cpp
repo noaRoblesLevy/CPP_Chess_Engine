@@ -914,32 +914,60 @@ void uci(){
                 }
             }
         }else if(command == "go"){
+            auto start = std::chrono::steady_clock::now();
+            int wtime = 0;
+            int btime = 0;
+            int winc = 0;
+            int binc = 0;
+            std::string word;
+            while(ss >> word){
+                if(word == "wtime"){
+                    ss >> wtime;
+                }else if(word == "btime"){
+                    ss >> btime;
+                }else if(word == "winc"){
+                    ss >> winc;
+                }else if(word == "binc"){
+                    ss >> binc;
+                }
+            }
+            int myTime = whiteTurn ? wtime : btime;
+            int myInc = whiteTurn ? winc : binc;
+            int budget = myTime / 30 + myInc;
+            int maxDepth = (myTime > 0) ? 64 : 6;
             moveListPerColor(new_board, whiteTurn);
             std::vector<Move> goMoves = possibleMoves;
                 std::sort(goMoves.begin(), goMoves.end(), [&](Move a, Move b){
                 return moveScore(new_board, a) > moveScore(new_board, b);
             });
-            int bestScore = whiteTurn ? -1000000 : 1000000;
             if(goMoves.empty()){
                 std::cout << "bestmove 0000" << std::endl;
             }else{
                 Move bestMove = goMoves[0];
-                for(Move m : goMoves){
-                    makeMove(new_board, m);
-                    int score = (whiteTurn)?minmax(new_board, 5, !whiteTurn, bestScore, 1000000):minmax(new_board, 5, !whiteTurn, -1000000, bestScore);
-                    if (whiteTurn &&  score> bestScore) {
-                        bestScore = score;                  
-                        bestMove = m;
-                    }else if (!whiteTurn &&  score < bestScore) {
-                        bestScore = score;
-                        bestMove = m;
+                for(int depth = 1; depth <= maxDepth; depth++){
+                    auto now = std::chrono::steady_clock::now();
+                    long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
+                    if(myTime > 0 && elapsed > budget / 2){
+                        break;
                     }
-                    unmakeMove(new_board);
+                    int bestScore = whiteTurn ? -1000000 : 1000000;
+                    for(Move m : goMoves){
+                        makeMove(new_board, m);
+                        int score = (whiteTurn)?minmax(new_board, depth - 1, !whiteTurn, bestScore, 1000000):minmax(new_board, depth - 1, !whiteTurn, -1000000, bestScore);
+                        if (whiteTurn &&  score> bestScore) {
+                            bestScore = score;                  
+                            bestMove = m;
+                        }else if (!whiteTurn &&  score < bestScore) {
+                            bestScore = score;
+                            bestMove = m;
+                        }
+                        unmakeMove(new_board);
+                    }
+                    std::cout << "info depth " << depth << " score cp " << (whiteTurn ? bestScore : -bestScore) <<" pv " << moveToString(bestMove) << std::endl;
                 }
                 std::string move = moveToString(bestMove);
                 std::cout << "bestmove " << move << std::endl;
             }
-
         }else if(command == "d"){
             showBoard(new_board);
         }else if(command == "quit"){
@@ -951,12 +979,8 @@ void uci(){
     }
 }
 
-
 int main() {
     std::cout << "Chess engine v0.1\n";
-    // loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-    // bench(new_board);
-
     uci();
     return 0;
 }
