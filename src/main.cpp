@@ -809,6 +809,13 @@ int minmax(char board[8][8], int depth, bool white){
     if(depth == 0){return evaluate(board);}
     moveListPerColor(board, white);
     std::vector<Move> minmaxMoves = possibleMoves;
+    int kingPos = findKing(board, white);
+    if(minmaxMoves.empty() && lookForCheck(board, kingPos / 8, kingPos % 8, !white)){
+        int score = (white)? -100000 : 100000;
+        return score;
+    }else if(minmaxMoves.empty()){
+        return 0;
+    }
     int bestScore = white ? -1000000 : 1000000;
     for(Move m: minmaxMoves){
         makeMove(board, m);
@@ -870,7 +877,7 @@ void uci(){
                 Move bestMove = goMoves[0];
                 for(Move m : goMoves){
                     makeMove(new_board, m);
-                    int score = minmax(new_board, 4, !whiteTurn);
+                    int score = minmax(new_board, 3, !whiteTurn);
                     if (whiteTurn &&  score> bestScore) {
                         bestScore = score;
                         bestMove = m;
