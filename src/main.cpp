@@ -805,7 +805,7 @@ void bench(char board[8][8]){
 
 }
 
-int minmax(char board[8][8], int depth, bool white){
+int minmax(char board[8][8], int depth, bool white, int alpha, int beta){
     if(depth == 0){return evaluate(board);}
     moveListPerColor(board, white);
     std::vector<Move> minmaxMoves = possibleMoves;
@@ -819,12 +819,24 @@ int minmax(char board[8][8], int depth, bool white){
     int bestScore = white ? -1000000 : 1000000;
     for(Move m: minmaxMoves){
         makeMove(board, m);
-        int score = minmax(board, depth - 1, !white);
+        int score = minmax(board, depth - 1, !white, alpha, beta);
         unmakeMove(board);
         if (white &&  score> bestScore) {
             bestScore = score;
+            if (score > alpha){
+                alpha = score;
+                if(alpha >= beta){
+                    break;
+                }                
+            }
         }else if (!white &&  score < bestScore) {
             bestScore = score;
+            if (score < beta){
+                beta = score;
+                if(beta <= alpha){
+                    break;
+                }                
+            }
         }
     }
     return bestScore;
@@ -877,9 +889,9 @@ void uci(){
                 Move bestMove = goMoves[0];
                 for(Move m : goMoves){
                     makeMove(new_board, m);
-                    int score = minmax(new_board, 3, !whiteTurn);
+                    int score = minmax(new_board, 3, !whiteTurn, -1000000, 1000000);
                     if (whiteTurn &&  score> bestScore) {
-                        bestScore = score;
+                        bestScore = score;                  
                         bestMove = m;
                     }else if (!whiteTurn &&  score < bestScore) {
                         bestScore = score;
