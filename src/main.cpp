@@ -843,13 +843,25 @@ void uci(){
                 }
             }
         }else if(command == "go"){
-            Move m;
             moveListPerColor(new_board, whiteTurn);
+            int bestScore = whiteTurn ? -1000000 : 1000000;
             if(possibleMoves.empty()){
                 std::cout << "bestmove 0000" << std::endl;
             }else{
-                m = possibleMoves[0];
-                std::string move = moveToString(m);
+                Move bestMove = possibleMoves[0];
+                for(Move m : possibleMoves){
+                    makeMove(new_board, m);
+                    int score = evaluate(new_board);
+                    if (whiteTurn &&  score> bestScore) {
+                        bestScore = score;
+                        bestMove = m;
+                    }else if (!whiteTurn &&  score < bestScore) {
+                        bestScore = score;
+                        bestMove = m;
+                    }
+                    unmakeMove(new_board);
+                }
+                std::string move = moveToString(bestMove);
                 std::cout << "bestmove " << move << std::endl;
             }
 
