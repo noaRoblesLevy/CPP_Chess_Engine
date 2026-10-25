@@ -5,6 +5,7 @@
 #include <vector>
 #include <chrono>
 #include <sstream>
+#include <algorithm>
 
 char start_board[8][8] = {
         {'r','n','b','q','k','b','n','r'},  // rij 8: zwarte stukken
@@ -712,6 +713,24 @@ long perft(char board[8][8], int depth, bool white){
     return count;
 }
 
+int pieceValue(char piece){
+    switch (std::toupper(piece))
+    {
+    case 'Q':
+        return 900;
+    case 'R':
+        return 500;
+    case 'B':
+        return 330;
+    case 'N':
+        return 320;
+    case 'P':
+        return 100;
+    default:
+        return 0;
+    }
+}
+
 int assignPoints(char piece, bool isWhite, int i, int j){
     int sign = (isWhite)? 1 : -1;
     int value = 0;
@@ -805,13 +824,28 @@ void bench(char board[8][8]){
 
 }
 
+int moveScore(char board[8][8], Move m){
+    char toPiece = board[m.toRow][m.toCol];
+    if(toPiece == '.'){return 0;}
+    char fromPiece = board[m.fromRow][m.fromCol];
+    int score = pieceValue(toPiece);
+    score =  score * 10;
+    int minusScore = pieceValue(fromPiece);
+    score -= minusScore;
+    return score;
+
+}
+
 int minmax(char board[8][8], int depth, bool white, int alpha, int beta){
     if(depth == 0){return evaluate(board);}
     moveListPerColor(board, white);
     std::vector<Move> minmaxMoves = possibleMoves;
+    std::sort(minmaxMoves.begin(), minmaxMoves.end(), [&](Move a, Move b){
+        return moveScore(board, a) > moveScore(board, b);
+    });
     int kingPos = findKing(board, white);
     if(minmaxMoves.empty() && lookForCheck(board, kingPos / 8, kingPos % 8, !white)){
-        int score = (white)? -100000 : 100000;
+        int score = (white)? -(100000 + depth) : 100000 + depth;
         return score;
     }else if(minmaxMoves.empty()){
         return 0;
@@ -882,6 +916,9 @@ void uci(){
         }else if(command == "go"){
             moveListPerColor(new_board, whiteTurn);
             std::vector<Move> goMoves = possibleMoves;
+                std::sort(goMoves.begin(), goMoves.end(), [&](Move a, Move b){
+                return moveScore(new_board, a) > moveScore(new_board, b);
+            });
             int bestScore = whiteTurn ? -1000000 : 1000000;
             if(goMoves.empty()){
                 std::cout << "bestmove 0000" << std::endl;
@@ -889,7 +926,7 @@ void uci(){
                 Move bestMove = goMoves[0];
                 for(Move m : goMoves){
                     makeMove(new_board, m);
-                    int score = minmax(new_board, 3, !whiteTurn, -1000000, 1000000);
+                    int score = (whiteTurn)?minmax(new_board, 5, !whiteTurn, bestScore, 1000000):minmax(new_board, 5, !whiteTurn, -1000000, bestScore);
                     if (whiteTurn &&  score> bestScore) {
                         bestScore = score;                  
                         bestMove = m;
